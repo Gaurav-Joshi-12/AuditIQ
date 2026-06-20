@@ -23,16 +23,6 @@ const SubmissionsPage = () => {
     navigate('/auditor/reports');
   };
 
-  const handleEmailReport = async (subId: string) => {
-    const sub = submissions.find(s => s.id === subId);
-    const org = organizations.find(o => o.id === sub?.orgId);
-    if (sub && org) {
-      await emailReport(subId);
-      toast.success(`Report shared with ${org.contactEmail}`, {
-        description: `Audit report for "${sub.fileName}" has been shared with ${org.name}. The organization can now view their report.`,
-      });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -130,15 +120,7 @@ const SubmissionsPage = () => {
                               <Eye size={12} />
                               View Report
                             </button>
-                            {!sub.emailSent ? (
-                              <button
-                                onClick={() => handleEmailReport(sub.id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-                              >
-                                <Mail size={12} />
-                                Send to Org
-                              </button>
-                            ) : (
+                            {sub.emailSent && (
                               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-success/10 text-success text-xs font-semibold">
                                 <MailCheck size={12} />
                                 Sent

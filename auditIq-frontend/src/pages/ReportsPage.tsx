@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useAuditStore } from '@/store/audit-store';
-import { FileText, Download, Printer, RefreshCw, Shield, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { FileText, Download, Printer, RefreshCw, Shield, AlertTriangle, CheckCircle, TrendingUp, Mail } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useMemo } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import { toast } from 'sonner';
 
 const RISK_COLORS = { Critical: '#ef4444', Moderate: '#f59e0b', Low: '#94a3b8' };
 
@@ -24,9 +27,10 @@ const StatBox = ({ label, value, sub, color = 'primary' }: { label: string; valu
 );
 
 const ReportsPage = () => {
-  const { transactions, flaggedTransactions, vendors, metrics, hasData } = useAuditStore();
+  const { transactions, flaggedTransactions, vendors, metrics, hasData, activeSubmissionId, emailReport, organizations, submissions } = useAuditStore();
   const [generated, setGenerated] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const reportData = useMemo(() => {
     if (!hasData || !metrics) return null;
@@ -70,6 +74,63 @@ const ReportsPage = () => {
   };
 
   const handlePrint = () => window.print();
+
+  const handleSharePDF = async () => {
+    if (!activeSubmissionId) return;
+    
+    setSharing(true);
+    toast.info('Generating high-quality PDF report. Please wait...', { duration: 4000 });
+    
+    try {
+      // 1. Target the report DOM element
+      const reportElement = document.getElementById('audit-report-content');
+      if (!reportElement) throw new Error('Report content not found');
+      
+      // 2. Capture canvas
+      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      // 3. Initialize jsPDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      // 4. Add image to first page
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      
+      // 5. Loop and add subsequent pages
+      while (heightLeft >= 0) {
+        position = position - pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // 6. Convert to Blob
+      const pdfBlob = pdf.output('blob');
+      
+      // 6. Send via email
+      await emailReport(activeSubmissionId, pdfBlob);
+      
+      const sub = submissions.find(s => s.id === activeSubmissionId);
+      const org = organizations.find(o => o.id === sub?.orgId);
+      
+      toast.success(`PDF Report Shared with ${org?.contactEmail || 'Organization'}`, {
+        description: `A beautifully formatted PDF report has been generated and emailed directly to ${org?.name || 'the client'}.`
+      });
+      
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to generate or share PDF report');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (!hasData || !metrics || !reportData) {
     return (
@@ -123,8 +184,12 @@ const ReportsPage = () => {
           <p className="text-xs text-muted-foreground mt-0.5">Report ID: {reportId} | Generated: {reportDate}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={handlePrint} className="px-3 py-2 rounded-md border border-border bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 animate-professional inline-flex items-center gap-1.5 focus:ring-2 focus:ring-ring focus:outline-none">
-            <Download size={14} /> Download as PDF
+          <button onClick={handleSharePDF} disabled={sharing} className="px-3 py-2 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 animate-professional inline-flex items-center gap-1.5 focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50">
+            {sharing ? <RefreshCw size={14} className="animate-spin" /> : <Mail size={14} />}
+            {sharing ? 'Generating PDF...' : 'Email PDF to Org'}
+          </button>
+          <button onClick={handlePrint} className="px-3 py-2 rounded-md border border-border bg-surface text-foreground text-xs font-semibold hover:opacity-90 inline-flex items-center gap-1.5 focus:ring-2 focus:ring-ring focus:outline-none">
+            <Printer size={14} /> Print
           </button>
           <button onClick={() => setGenerated(false)} className="px-3 py-2 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground animate-professional inline-flex items-center gap-1.5 focus:ring-2 focus:ring-ring focus:outline-none">
             <RefreshCw size={14} /> Regenerate
@@ -133,7 +198,7 @@ const ReportsPage = () => {
       </div>
 
       {/* Report Body */}
-      <div className="bg-card rounded-lg border border-border shadow-card p-8 print:shadow-none print:border-none">
+      <div id="audit-report-content" className="bg-card rounded-lg border border-border shadow-card p-8 print:shadow-none print:border-none">
         {/* Title Block */}
         <div className="text-center border-b border-border pb-6 mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">

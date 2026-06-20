@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import axios from 'axios';
+import api from '@/lib/api';
 import type {
   Transaction, FlaggedTransaction, Vendor, SummaryMetrics,
   PipelineStage, ChatMessage, Organization, Submission, UserRole,
@@ -73,6 +73,7 @@ function mapCompanyToOrg(c: any): Organization {
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 interface AuditState {
+  token: string | null;
   userRole: UserRole;
   currentOrgId: string | null;
   organizations: Organization[];
@@ -92,14 +93,16 @@ interface AuditState {
   isLoadingData: boolean;
 
   // Actions
+  setToken: (token: string | null) => void;
   setRole: (role: UserRole) => void;
-  setCurrentOrg: (orgId: string) => void;
+  setCurrentOrg: (orgId: string | null) => void;
+  logout: () => void;
   loadFromBackend: () => Promise<void>;
 
   submitOrgData: (orgId: string, file: File) => Promise<void>;
   processSubmission: (submissionId: string) => Promise<void>;
   loadSubmissionResults: (submissionId: string) => Promise<void>;
-  emailReport: (submissionId: string) => Promise<void>;
+  emailReport: (submissionId: string, pdfBlob?: Blob) => Promise<void>;
 
   setTransactions: (txns: Transaction[]) => void;
   setPipelineStage: (stage: PipelineStage) => void;
@@ -111,6 +114,7 @@ interface AuditState {
 export const useAuditStore = create<AuditState>()(
   persist(
     (set, get) => ({
+      token: null,
       userRole: 'none',
       currentOrgId: null,
       organizations: [],
@@ -128,14 +132,16 @@ export const useAuditStore = create<AuditState>()(
       searchQuery: '',
       isLoadingData: false,
 
+      setToken: (token) => set({ token }),
       setRole: (role) => set({ userRole: role }),
       setCurrentOrg: (orgId) => set({ currentOrgId: orgId }),
+      logout: () => set({ token: null, userRole: 'none', currentOrgId: null }),
 
       // ── Fetch real companies + uploads from backend ────────────────────────
       loadFromBackend: async () => {
         set({ isLoadingData: true });
         try {
-          const companiesRes = await axios.get(`${API}/api/companies`);
+          const companiesRes = await api.get(`${API}/api/companies`);
           const companies: any[] = companiesRes.data;
           const orgs: Organization[] = companies.map(mapCompanyToOrg);
 
@@ -145,7 +151,7 @@ export const useAuditStore = create<AuditState>()(
           await Promise.all(
             orgs.map(async (org) => {
               try {
-                const uploadsRes = await axios.get(`${API}/api/uploads/company/${org.backendId}`);
+                const uploadsRes = await api.get(`${API}/api/uploads/company/${org.backendId}`);
                 const uploads: any[] = uploadsRes.data;
                 uploads.forEach(u => {
                   const existing = currentSubs.find(s => s.id === String(u.uploadId));
@@ -187,7 +193,7 @@ export const useAuditStore = create<AuditState>()(
         const formData = new FormData();
         formData.append('file', file);
 
-        const uploadRes = await axios.post(
+        const uploadRes = await api.post(
           `${API}/api/uploads/upload?companyId=${org.backendId}`,
           formData
         );
@@ -244,9 +250,9 @@ export const useAuditStore = create<AuditState>()(
 
         try {
           const [txnsRes, anomaliesRes, summaryRes] = await Promise.all([
-            axios.get(`${API}/api/transactions/upload/${sub.uploadId}`),
-            axios.get(`${API}/api/anomalies/upload/${sub.uploadId}`),
-            axios.get(`${API}/api/anomalies/summary/${companyId}`),
+            api.get(`${API}/api/transactions/upload/${sub.uploadId}`),
+            api.get(`${API}/api/anomalies/upload/${sub.uploadId}`),
+            api.get(`${API}/api/anomalies/summary/${companyId}`),
           ]);
 
           const mappedTxns: Transaction[] = (txnsRes.data as any[]).map(mapTransaction);
@@ -320,9 +326,9 @@ export const useAuditStore = create<AuditState>()(
         const companyId = get().organizations.find(o => o.id === sub.orgId)?.backendId || 1;
         try {
           const [txnsRes, anomaliesRes, summaryRes] = await Promise.all([
-            axios.get(`${API}/api/transactions/upload/${sub.uploadId}`),
-            axios.get(`${API}/api/anomalies/upload/${sub.uploadId}`),
-            axios.get(`${API}/api/anomalies/summary/${companyId}`),
+            api.get(`${API}/api/transactions/upload/${sub.uploadId}`),
+            api.get(`${API}/api/anomalies/upload/${sub.uploadId}`),
+            api.get(`${API}/api/anomalies/summary/${companyId}`),
           ]);
 
           const mappedTxns: Transaction[] = (txnsRes.data as any[]).map(mapTransaction);
@@ -372,11 +378,19 @@ export const useAuditStore = create<AuditState>()(
       },
 
       // ── Email report: persisted to DB ──────────────────────────────────────
-      emailReport: async (submissionId) => {
+      emailReport: async (submissionId, pdfBlob?: Blob) => {
         const sub = get().submissions.find(s => s.id === submissionId);
         if (!sub?.uploadId) return;
         try {
-          await axios.patch(`${API}/api/uploads/${sub.uploadId}/share`);
+          if (pdfBlob) {
+            const formData = new FormData();
+            formData.append('pdf', pdfBlob, 'AuditIQ_Report.pdf');
+            await api.patch(`${API}/api/uploads/${sub.uploadId}/share`, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+          } else {
+            await api.patch(`${API}/api/uploads/${sub.uploadId}/share`);
+          }
           set(s => ({
             submissions: s.submissions.map(s2 =>
               s2.id === submissionId ? { ...s2, emailSent: true } : s2
@@ -403,6 +417,7 @@ export const useAuditStore = create<AuditState>()(
       storage: createJSONStorage(() => sessionStorage), // session only — cleared on tab close
       partialize: (state) => ({
         // Persist analysis results so they survive navigation
+        token: state.token,
         userRole: state.userRole,
         currentOrgId: state.currentOrgId,
         organizations: state.organizations,

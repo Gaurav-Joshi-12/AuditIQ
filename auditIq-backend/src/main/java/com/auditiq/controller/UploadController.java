@@ -15,6 +15,7 @@ import java.util.List;
 public class UploadController {
 
     private final UploadService uploadService;
+    private final com.auditiq.service.EmailService emailService;
 
     /** POST /api/uploads/upload?companyId=X  — process file through AI pipeline */
     @PostMapping("/upload")
@@ -44,11 +45,17 @@ public class UploadController {
         }
     }
 
-    /** PATCH /api/uploads/{uploadId}/share — mark report as shared with org */
+    /** PATCH /api/uploads/{uploadId}/share — mark report as shared with org and send email */
     @PatchMapping("/{uploadId}/share")
-    public ResponseEntity<?> shareWithOrg(@PathVariable Long uploadId) {
+    public ResponseEntity<?> shareWithOrg(
+            @PathVariable Long uploadId,
+            @RequestParam(value = "pdf", required = false) MultipartFile pdfAttachment) {
         try {
-            return ResponseEntity.ok(uploadService.shareWithOrg(uploadId));
+            Upload upload = uploadService.shareWithOrg(uploadId);
+            // After successfully marking it as shared, send the email to the organization!
+            // Assuming the organization's email is the hardcoded test email for now as per instructions
+            emailService.sendAuditReport(upload, upload.getCompany(), "gaurav12asap@gmail.com", pdfAttachment);
+            return ResponseEntity.ok(upload);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

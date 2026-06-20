@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 // Shared pages
 import RoleSelectPage from "./pages/RoleSelectPage";
 import SimulationPage from "./pages/SimulationPage";
+import AuthPage from "./pages/AuthPage";
 
 // Organization pages
 import OrgDashboardPage from "./pages/OrgDashboardPage";
@@ -38,6 +39,7 @@ const App = () => (
         <Routes>
           {/* Landing — no layout */}
           <Route path="/" element={<RoleSelectPage />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/simulation" element={<SimulationPage />} />
 
           {/* Organization Portal */}

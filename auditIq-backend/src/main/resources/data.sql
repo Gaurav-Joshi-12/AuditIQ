@@ -16,7 +16,9 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Reset PostgreSQL identity sequences so Hibernate inserts new rows without ID collisions
-ALTER TABLE company ALTER COLUMN id RESTART WITH 100;
-ALTER TABLE approved_vendor ALTER COLUMN id RESTART WITH 100;
-ALTER TABLE upload ALTER COLUMN upload_id RESTART WITH 100;
-ALTER TABLE transaction ALTER COLUMN id RESTART WITH 100;
+SELECT setval(pg_get_serial_sequence('company', 'id'), COALESCE(max(id), 1)) FROM company;
+SELECT setval(pg_get_serial_sequence('approved_vendor', 'id'), COALESCE(max(id), 1)) FROM approved_vendor;
+SELECT setval(pg_get_serial_sequence('upload', 'upload_id'), COALESCE(max(upload_id), 1)) FROM upload;
+SELECT setval(pg_get_serial_sequence('transaction', 'id'), COALESCE(max(id), 1)) FROM transaction;
+SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE(max(id), 1)) FROM users;
+SELECT setval(pg_get_serial_sequence('anomaly_result', 'id'), COALESCE(max(id), 1)) FROM anomaly_result;

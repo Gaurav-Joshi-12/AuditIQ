@@ -17,4 +17,5 @@ public class RegisterRequest {
     private String password;
     private String role;
     private Long companyId;
+    private String newCompanyName;
 }

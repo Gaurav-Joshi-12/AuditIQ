@@ -8,21 +8,11 @@ const RoleSelectPage = () => {
   const { setRole, loadFromBackend, setCurrentOrg, organizations } = useAuditStore();
   const [loading, setLoading] = useState(false);
 
-  const handleSelect = async (role: 'organization' | 'auditor' | 'simulation') => {
-    setLoading(true);
-    setRole(role);
-    await loadFromBackend(); // fetch real companies + uploads from backend
-    setLoading(false);
-
-    if (role === 'organization') {
-      // Default to first org from backend (companyId 1 = Tata Motors)
-      const firstOrg = useAuditStore.getState().organizations[0];
-      if (firstOrg) setCurrentOrg(firstOrg.id);
-      navigate('/org/dashboard');
-    } else if (role === 'auditor') {
-      navigate('/auditor/dashboard');
-    } else {
+  const handleSelect = (role: 'organization' | 'auditor' | 'simulation') => {
+    if (role === 'simulation') {
       navigate('/simulation');
+    } else {
+      navigate(`/auth?role=${role}`);
     }
   };
 
