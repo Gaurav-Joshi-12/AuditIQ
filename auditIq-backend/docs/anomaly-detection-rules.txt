@@ -1,0 +1,141 @@
+------------------------------------------------------------
+RULE: ROUND_NUMBER
+------------------------------------------------------------
+What it checks: Flags transactions with suspiciously round amounts,
+since real-world legitimate transactions rarely land on exact multiples
+of a large round number — this can indicate fabricated or estimated figures.
+
+Condition: amount % 10000 == 0 AND amount >= 100000
+
+Severity weight: +1
+
+Example from dataset: TXN-021 (Tata Steel Ltd, ₹10,00,000) — exactly
+divisible by 10,000 and above the 1 lakh floor → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: DUPLICATE
+------------------------------------------------------------
+What it checks: Flags transactions that look like duplicate payments
+made to the same vendor.
+
+Condition: Same vendorName + same amount + transactionDate within 48 hours of
+another transaction in the same upload.
+
+Severity weight: +3
+
+Example from dataset: TXN-005 and TXN-006 (Both to Mahindra CIE for ₹50,000 within a day) → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: HIGH_VALUE
+------------------------------------------------------------
+What it checks: Flags any transaction that exceeds a high nominal threshold.
+
+Condition: amount > 1,000,000 (₹10 lakh)
+
+Severity weight: +2
+
+Example from dataset: TXN-018 (Sundaram Clayton, ₹2,50,00,000) — way above
+the 10 lakh threshold → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: UNKNOWN_VENDOR
+------------------------------------------------------------
+What it checks: Flags payments made to vendors that are not on the approved
+vendor master list.
+
+Condition: vendorName not found in ApprovedVendor table for the company.
+
+Severity weight: +2
+
+Example from dataset: TXN-029 (Unknown Supplier, ₹45,000) — vendor not in
+the pre-seeded ApprovedVendor list → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: WEEKEND_TIMING
+------------------------------------------------------------
+What it checks: Flags transactions processed outside normal business days.
+
+Condition: transactionDate falls on Saturday or Sunday.
+
+Severity weight: +1
+
+Example from dataset: TXN-011 (Tata Steel Ltd, processed on a Sunday) → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: STATISTICAL_OUTLIER
+------------------------------------------------------------
+What it checks: Flags transactions whose amount statistically deviates from
+the norm for the upload set.
+
+Condition: Math.abs(zScore) > 3.0
+
+Severity weight: +2
+
+Example from dataset: TXN-018 (Sundaram Clayton, ₹2.5 crore) — z-score ≈ 5.56 → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: SPLIT_TRANSACTION
+------------------------------------------------------------
+What it checks: Flags possible structuring, where a large transaction is split
+into multiple smaller ones just under a major approval threshold (e.g., ₹10L).
+
+Condition: 3 or more transactions to the same vendor within 24 hours, each with
+amount between 800,000 and 999,999.
+
+Severity weight: +3
+
+Example from dataset: TXN-041, TXN-042, TXN-043 (All to Minda Industries, ₹9,50,000 each on same day) → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: BALANCE_MISMATCH
+------------------------------------------------------------
+What it checks: Flags transactions where the ledger's stated balance_after does
+not match what balance_before minus the transaction amount should produce.
+This is a hard accounting-math check, not a heuristic — it indicates the ledger
+itself may have been tampered with or has a data integrity issue.
+
+Condition: Math.abs((balanceBefore - amount) - balanceAfter) > 0.01
+
+Severity weight: +3
+
+Example from dataset: TXN-018 (balanceBefore=353000, amount=25000000, balanceAfter=0)
+353000 - 25000000 != 0 → flagged.
+------------------------------------------------------------
+
+------------------------------------------------------------
+RULE: MISSING_INVOICE
+------------------------------------------------------------
+What it checks: Flags transactions with no invoice number on file.
+No paper trail / supporting document reference exists for this transaction —
+a common real-audit red flag.
+
+Condition: invoiceNumber is null or blank
+
+Severity weight: +1
+
+Example from dataset: TXN-012, TXN-013, TXN-019, TXN-024, TXN-025 all have
+blank invoice numbers in the CSV → flagged.
+------------------------------------------------------------
+
+============================================================
+SEVERITY SCORING & THRESHOLDS
+============================================================
+The total severity score is the sum of the weights of all triggered rules.
+
+Bucketing Thresholds:
+score >= 8  → CRITICAL
+score >= 5  → HIGH
+score >= 3  → MEDIUM
+score >= 1  → LOW
+
+Z-Score Computation Note:
+The z-score mean and population stddev are computed strictly per-upload,
+using only the transactions present in that specific upload file. This prevents
+cross-upload contamination of the statistical baseline.

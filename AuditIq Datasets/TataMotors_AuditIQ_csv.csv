@@ -1,0 +1,41 @@
+transaction_id,date,vendor_id,vendor_name,department,approved_by,amount,ledger_type,category,payment_mode,balance_before,balance_after,invoice_number,is_recurring
+TXN-001,2025-10-01,V-501,Bharat Forge Ltd,Procurement,R. Sharma,145000,Purchase Ledger,Raw Materials,NEFT,7500000,7355000,INV-2025-1001,FALSE
+TXN-002,2025-10-03,V-503,Bosch India Pvt Ltd,Finance,M. Patel,67500,General Ledger,Maintenance,NEFT,7355000,7287500,INV-2025-1002,TRUE
+TXN-003,2025-10-07,V-504,Tata Steel Ltd,Operations,S. Kumar,312000,Purchase Ledger,Raw Materials,RTGS,7287500,6975500,INV-2025-1003,FALSE
+TXN-004,2025-10-09,V-506,Mahindra CIE,Procurement,R. Sharma,198000,Purchase Ledger,Engine Parts,NEFT,6975500,6777500,INV-2025-1004,FALSE
+TXN-005,2025-10-11,V-502,JBM Auto Ltd,Operations,A. Mehta,88500,Sales Ledger,Logistics,NEFT,6777500,6689000,INV-2025-1005,TRUE
+TXN-006,2025-10-14,V-505,Minda Industries,Procurement,P. Singh,425000,Purchase Ledger,Engine Parts,RTGS,6689000,6264000,INV-2025-1006,FALSE
+TXN-007,2025-10-16,V-501,Bharat Forge Ltd,Finance,M. Patel,53000,General Ledger,Maintenance,Cheque,6264000,6211000,INV-2025-1007,TRUE
+TXN-008,2025-10-18,V-507,Sundaram Clayton,Procurement,R. Sharma,275000,Purchase Ledger,Raw Materials,NEFT,6211000,5936000,INV-2025-1008,FALSE
+TXN-009,2025-10-21,V-503,Bosch India Pvt Ltd,Operations,S. Kumar,91000,Purchase Ledger,Engine Parts,NEFT,5936000,5845000,INV-2025-1009,TRUE
+TXN-010,2025-10-23,V-504,Tata Steel Ltd,Procurement,A. Mehta,560000,Purchase Ledger,Raw Materials,RTGS,5845000,5285000,INV-2025-1010,FALSE
+TXN-011,2025-10-04,V-502,JBM Auto Ltd,Procurement,R. Sharma,2500000,Purchase Ledger,Engine Parts,RTGS,5285000,2785000,INV-2025-1011,FALSE
+TXN-012,2025-10-05,V-505,Minda Industries,Finance,M. Patel,300000,General Ledger,Maintenance,NEFT,2785000,2485000,,FALSE
+TXN-013,2025-10-19,V-501,Bharat Forge Ltd,HR,P. Singh,175000,General Ledger,Logistics,Cheque,2485000,2310000,,FALSE
+TXN-014,2025-11-01,V-506,Mahindra CIE,Procurement,A. Mehta,1000000,Purchase Ledger,Raw Materials,RTGS,2310000,1310000,INV-2025-1014,FALSE
+TXN-015,2025-11-15,V-503,Bosch India Pvt Ltd,Finance,R. Sharma,500000,General Ledger,Engine Parts,NEFT,1310000,810000,INV-2025-1015,FALSE
+TXN-016,2025-10-28,V-501,Bharat Forge Ltd,Procurement,R. Sharma,145000,Purchase Ledger,Raw Materials,NEFT,810000,665000,INV-2025-1001,FALSE
+TXN-017,2025-11-10,V-504,Tata Steel Ltd,Operations,S. Kumar,312000,Purchase Ledger,Raw Materials,RTGS,665000,353000,INV-2025-1003,FALSE
+TXN-018,2025-10-22,V-507,Sundaram Clayton,Procurement,R. Sharma,25000000,Purchase Ledger,Engine Parts,RTGS,353000,0,INV-2025-1016,FALSE
+TXN-019,2025-11-05,V-506,Mahindra CIE,Operations,A. Mehta,8750000,Purchase Ledger,Raw Materials,RTGS,25000000,16250000,,FALSE
+TXN-020,2025-11-18,V-502,JBM Auto Ltd,Finance,M. Patel,9200000,General Ledger,Engine Parts,RTGS,16250000,7050000,INV-2025-1017,FALSE
+TXN-021,2025-10-30,V-504,Tata Steel Ltd,Procurement,P. Singh,1000000,Purchase Ledger,Raw Materials,RTGS,7050000,6050000,INV-2025-1018,TRUE
+TXN-022,2025-11-12,V-505,Minda Industries,Operations,S. Kumar,500000,Purchase Ledger,Engine Parts,NEFT,6050000,5550000,INV-2025-1019,FALSE
+TXN-023,2025-11-20,V-503,Bosch India Pvt Ltd,Finance,R. Sharma,2000000,General Ledger,Maintenance,RTGS,5550000,3550000,INV-2025-1020,FALSE
+TXN-024,2025-10-15,V-501,Bharat Forge Ltd,HR,M. Patel,95000,General Ledger,Logistics,Cheque,3550000,3455000,,FALSE
+TXN-025,2025-10-27,V-502,JBM Auto Ltd,Procurement,A. Mehta,430000,Purchase Ledger,Raw Materials,NEFT,3455000,3025000,,FALSE
+TXN-026,2025-11-03,V-501,Bharat Forge Ltd,Procurement,R. Sharma,380000,Purchase Ledger,Engine Parts,RTGS,3025000,2645000,INV-2025-1021,FALSE
+TXN-027,2025-11-07,V-501,Bharat Forge Ltd,Operations,S. Kumar,290000,Purchase Ledger,Raw Materials,NEFT,2645000,2355000,INV-2025-1022,FALSE
+TXN-028,2025-11-13,V-501,Bharat Forge Ltd,Finance,M. Patel,125000,General Ledger,Maintenance,NEFT,2355000,2230000,INV-2025-1023,TRUE
+TXN-029,2025-11-17,V-501,Bharat Forge Ltd,Procurement,R. Sharma,610000,Purchase Ledger,Engine Parts,RTGS,2230000,1620000,INV-2025-1024,FALSE
+TXN-030,2025-11-21,V-501,Bharat Forge Ltd,Procurement,P. Singh,870000,Purchase Ledger,Raw Materials,RTGS,1620000,750000,INV-2025-1025,FALSE
+TXN-031,2025-11-04,V-507,Sundaram Clayton,Procurement,A. Mehta,215000,Purchase Ledger,Engine Parts,NEFT,750000,535000,INV-2025-1026,FALSE
+TXN-032,2025-11-06,V-506,Mahindra CIE,Operations,S. Kumar,178000,Purchase Ledger,Logistics,NEFT,535000,357000,INV-2025-1027,FALSE
+TXN-033,2025-11-08,V-504,Tata Steel Ltd,Finance,M. Patel,63000,General Ledger,Maintenance,Cheque,357000,294000,INV-2025-1028,TRUE
+TXN-034,2025-11-11,V-502,JBM Auto Ltd,Procurement,R. Sharma,332000,Purchase Ledger,Raw Materials,RTGS,294000,0,INV-2025-1029,FALSE
+TXN-035,2025-11-14,V-503,Bosch India Pvt Ltd,Operations,A. Mehta,117000,Purchase Ledger,Engine Parts,NEFT,332000,215000,INV-2025-1030,TRUE
+TXN-036,2025-11-19,V-505,Minda Industries,Finance,P. Singh,245000,General Ledger,Logistics,NEFT,215000,0,INV-2025-1031,FALSE
+TXN-037,2025-11-22,V-507,Sundaram Clayton,Procurement,R. Sharma,489000,Purchase Ledger,Engine Parts,RTGS,245000,0,INV-2025-1032,FALSE
+TXN-038,2025-11-25,V-506,Mahindra CIE,Operations,S. Kumar,156000,Purchase Ledger,Raw Materials,NEFT,489000,333000,INV-2025-1033,FALSE
+TXN-039,2025-11-27,V-503,Bosch India Pvt Ltd,Finance,M. Patel,78000,General Ledger,Maintenance,NEFT,333000,255000,INV-2025-1034,TRUE
+TXN-040,2025-11-29,V-504,Tata Steel Ltd,Procurement,A. Mehta,405000,Purchase Ledger,Raw Materials,RTGS,255000,0,INV-2025-1035,FALSE

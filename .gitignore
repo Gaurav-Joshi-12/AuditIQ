@@ -1,0 +1,91 @@
+# ==================================
+# AuditIQ Root .gitignore
+# Covers both Frontend (React/Vite) & Backend (Spring Boot/Gradle)
+# ==================================
+
+# ----------------------------------
+# OS & System Files
+# ----------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# ----------------------------------
+# IDEs & Editors
+# ----------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+out/
+bin/
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# ----------------------------------
+# Backend (Spring Boot / Gradle / Java)
+# ----------------------------------
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/out/
+!**/src/test/**/out/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+tmp/
+
+# ----------------------------------
+# Frontend (Node.js / React / Vite)
+# ----------------------------------
+node_modules/
+dist/
+dist-ssr/
+build-ui/
+.eslintcache
+.stylelintcache
+coverage/
+.nyc_output/
+.npm/
+
+# ----------------------------------
+# Environment Variables & Secrets
+# ----------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
