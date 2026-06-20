@@ -1,0 +1,31 @@
+============================================================
+AUDIT IQ: RAG QUERY FLOW EXPLAINED
+============================================================
+
+1. WHAT IS AN EMBEDDING?
+An "embedding" is a way to turn words or sentences into a long list of numbers (a vector) that captures their core meaning. Instead of just matching exact keywords, embeddings allow us to find similarities based on context. For example, if you ask about "suspicious transactions," an embedding search will understand that words like "anomaly," "fraud," and "flagged" mean the same thing, even if you didn't type those exact words. In AuditIQ, we use Google's Gemini to turn every flagged transaction's details into a vector of 768 numbers.
+
+2. THE RAG FLOW (How it works end-to-end)
+RAG stands for Retrieval-Augmented Generation. Instead of asking an AI to guess an answer, we first "retrieve" real data, and then ask the AI to "generate" an answer based solely on that data.
+Step A: You ask a question (e.g., "Are there any duplicate payments?").
+Step B: We ask Gemini to convert your question into a vector (embedding).
+Step C: We search the PostgreSQL database (`anomaly_results` table) for past transaction vectors that are mathematically closest to your question's vector.
+Step D: We take the top 10 closest matches and package them into a block of text.
+Step E: We send your original question plus the block of matched transactions back to Gemini with strict instructions: "Answer the user's question using ONLY this data."
+Step F: Gemini reads the data and replies with a grounded, highly accurate answer.
+
+3. EMBEDDING STORAGE APPROACH
+We are using PostgreSQL's `pgvector` extension to perform the lightning-fast mathematical search. However, to keep our Java/Hibernate code clean and simple, we are storing the embedding in the database as a standard String column (`embedding_text`), but mapping it to the `vector(768)` type at the SQL level. When we save a new embedding, we convert the float array into a string format like "[0.123, -0.456, ...]". When we search, the database automatically treats this string as a mathematical vector.
+
+4. REQUIRED API KEY
+The entire system runs on a single API key from Google Gemini. It handles both generating the mathematical vectors and writing the final natural language answer.
+Key: `gemini.api.key`
+Get it free at: https://aistudio.google.com/apikey
+Configure it in `src/main/resources/application.properties`. If this key is missing, the backend degrades gracefully and will just return a friendly error message without crashing.
+
+5. A WORKED EXAMPLE
+- User Query: "Any suspicious transactions for Tata Motors last week?"
+- Step 1 (Embed): We convert that sentence into a 768-dimension vector.
+- Step 2 (Retrieve): The database compares that vector against all anomalies. It finds a match: "Vendor: Tata Motors | Amount: Rs. 1500000 | Severity: HIGH | Flags: HIGH_VALUE".
+- Step 3 (Context Building): We create a prompt containing the user's question and the retrieved Tata Motors transaction.
+- Step 4 (Generate): Gemini reads the prompt and replies: "Yes, there is one high-value transaction for Tata Motors flagged as suspicious. The amount was Rs. 15,00,000, and it was flagged for HIGH_VALUE severity."

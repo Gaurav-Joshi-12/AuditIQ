@@ -89,3 +89,8 @@ coverage/
 *.pem
 *.key
 *.cert
+
+# ----------------------------------
+# Backend Secrets — NEVER commit these
+# ----------------------------------
+auditIq-backend/src/main/resources/application.properties

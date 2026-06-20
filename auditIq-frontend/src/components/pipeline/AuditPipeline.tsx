@@ -45,7 +45,7 @@ export const AuditPipeline = () => {
           </span>
         )}
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-8 pt-2 relative">
         {stages.map((stage, index) => {
           const isComplete = currentIdx > index;
           const isCurrent = currentIdx === index;
@@ -63,7 +63,7 @@ export const AuditPipeline = () => {
                     scale: isCurrent ? 1.15 : 1,
                   }}
                   transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  className="w-9 h-9 rounded-full flex items-center justify-center relative z-10"
                 >
                   {isComplete ? (
                     <Check size={16} className="text-white" />
@@ -73,7 +73,11 @@ export const AuditPipeline = () => {
                     <span className="text-xs font-bold text-muted-foreground">{index + 1}</span>
                   )}
                 </motion.div>
-                <span className="absolute -bottom-7 whitespace-nowrap text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                <span className={`absolute -bottom-8 whitespace-nowrap text-[10px] font-medium text-muted-foreground uppercase tracking-wider ${
+                  index === 0 ? 'left-0' :
+                  index === stages.length - 1 ? 'right-0' :
+                  'left-1/2 -translate-x-1/2'
+                }`}>
                   {stage.label}
                 </span>
               </div>

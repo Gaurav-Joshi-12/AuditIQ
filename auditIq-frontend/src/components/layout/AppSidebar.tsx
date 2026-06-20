@@ -92,7 +92,7 @@ export const AppSidebar = () => {
           {!collapsed && <span>Switch Portal</span>}
         </button>
         {!collapsed && (
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest px-3 pt-1">
+          <p className="text-[10px] text-muted-foreground/60 tracking-wider">
             Deloitte Hacksplosion 2026
           </p>
         )}

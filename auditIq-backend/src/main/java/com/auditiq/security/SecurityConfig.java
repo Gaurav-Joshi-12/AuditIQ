@@ -44,6 +44,7 @@ public class SecurityConfig {
                         // Public endpoints that don't require authentication
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/companies").permitAll() // Needed for the registration dropdown
+                        .requestMatchers("/api/query").permitAll() // RAG queries
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

@@ -109,6 +109,11 @@ interface AuditState {
   addChatMessage: (msg: ChatMessage) => void;
   updateFlaggedStatus: (id: string, status: 'Pending' | 'Cleared' | 'Investigating') => void;
   setSearchQuery: (query: string) => void;
+  
+  // RAG routing state
+  activeUploadIdForRag: number | null;
+  activeCompanyIdForRag: number | null;
+  startRAGSession: (companyId: number, uploadId?: number) => void;
 }
 
 export const useAuditStore = create<AuditState>()(
@@ -131,10 +136,14 @@ export const useAuditStore = create<AuditState>()(
       hasData: false,
       searchQuery: '',
       isLoadingData: false,
+      
+      activeUploadIdForRag: null,
+      activeCompanyIdForRag: null,
 
       setToken: (token) => set({ token }),
       setRole: (role) => set({ userRole: role }),
       setCurrentOrg: (orgId) => set({ currentOrgId: orgId }),
+      startRAGSession: (companyId, uploadId) => set({ activeCompanyIdForRag: companyId, activeUploadIdForRag: uploadId || null }),
       logout: () => set({ token: null, userRole: 'none', currentOrgId: null }),
 
       // ── Fetch real companies + uploads from backend ────────────────────────

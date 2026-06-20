@@ -1,6 +1,6 @@
 import { useAuditStore } from '@/store/audit-store';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Play, Eye, Mail, Clock, CheckCircle2, Loader2, MailCheck } from 'lucide-react';
+import { FileText, Play, Eye, Mail, Clock, CheckCircle2, Loader2, MailCheck, Sparkles } from 'lucide-react';
 import { AuditPipeline } from '@/components/pipeline/AuditPipeline';
 import { toast } from 'sonner';
 
@@ -119,6 +119,17 @@ const SubmissionsPage = () => {
                             >
                               <Eye size={12} />
                               View Report
+                            </button>
+                            <button
+                              onClick={() => {
+                                const orgBackendId = organizations.find(o => o.id === sub.orgId)?.backendId || 1;
+                                useAuditStore.getState().startRAGSession(orgBackendId, sub.uploadId);
+                                navigate('/auditor/assistant');
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/30 text-xs font-medium text-primary bg-primary/5 hover:bg-primary/10 transition-colors shadow-sm"
+                            >
+                              <Sparkles size={12} className="text-primary" />
+                              <span>Ask AI</span>
                             </button>
                             {sub.emailSent && (
                               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-success/10 text-success text-xs font-semibold">

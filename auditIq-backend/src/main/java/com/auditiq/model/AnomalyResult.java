@@ -43,4 +43,8 @@ public class AnomalyResult {
     private String explanation;
 
     private LocalDateTime detectedAt;
+
+    @Column(name = "embedding_text", columnDefinition = "vector(768)")
+    @org.hibernate.annotations.ColumnTransformer(write = "?::vector", read = "embedding_text::text")
+    private String embeddingText;
 }

@@ -3,8 +3,8 @@ spring.application.name=auditIq
 
 # Database configuration
 spring.datasource.url=jdbc:postgresql://localhost:5432/auditiq_db
-spring.datasource.username=gauravjoshi
-spring.datasource.password=
+spring.datasource.username=YOUR_POSTGRES_USERNAME
+spring.datasource.password=YOUR_POSTGRES_PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # JPA / Hibernate configuration
@@ -21,14 +21,20 @@ server.port=8082
 spring.servlet.multipart.max-file-size=50MB
 spring.servlet.multipart.max-request-size=50MB
 
-# MAIL configuration
+# MAIL configuration (Gmail SMTP)
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=gaurav12asap@gmail.com
-spring.mail.password=tmjf dums rrem zdlx
+spring.mail.username=YOUR_GMAIL_ADDRESS
+spring.mail.password=YOUR_GMAIL_APP_PASSWORD
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
 # JWT Configuration
-jwt.secret=5c4f2a89d7c3b1e6f4a28d7b3e1c9f5a8b2d4e6c7a1f3b5d9e8c4a2b1f7d3e9
+jwt.secret=YOUR_JWT_SECRET_KEY_MIN_32_CHARS
 jwt.expiration=86400000
+
+# Gemini RAG Configuration
+# Get your key from https://aistudio.google.com/
+gemini.api.key=YOUR_GEMINI_API_KEY
+gemini.embedding.model=gemini-embedding-2
+gemini.model=gemini-2.5-flash

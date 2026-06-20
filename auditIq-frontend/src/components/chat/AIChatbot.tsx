@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import { useAuditStore } from '@/store/audit-store';
+import api from '@/lib/api';
 import type { ChatMessage } from '@/lib/types';
 
 const SUGGESTIONS = [
-  'Show high-value transactions above ₹5L',
+  'Are there any duplicate payments or suspicious high value transactions?',
   'Which vendors have the highest fraud risk?',
   'List round-number transactions',
   'How many weekend postings were detected?',
@@ -12,61 +13,14 @@ const SUGGESTIONS = [
 ];
 
 export const AIChatbot = () => {
-  const { chatMessages, addChatMessage, flaggedTransactions, transactions, vendors, metrics } = useAuditStore();
+  const { chatMessages, addChatMessage, activeCompanyIdForRag, activeUploadIdForRag } = useAuditStore();
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
-
-  const generateResponse = (query: string): string => {
-    const q = query.toLowerCase();
-
-    if (q.includes('high value') || q.includes('high-value') || q.includes('above') || q.includes('5l') || q.includes('500000')) {
-      const highVal = flaggedTransactions.filter(f => f.amount > 500000);
-      return `Found **${highVal.length}** high-value transactions exceeding ₹5,00,000.\n\n${highVal.slice(0, 5).map(t =>
-        `- **${t.transaction_id}** | ${t.vendor_name} | ₹${t.amount.toLocaleString('en-IN')} | Risk: ${t.risk_tier}`
-      ).join('\n')}\n\n${highVal.length > 5 ? `*...and ${highVal.length - 5} more*` : ''}`;
-    }
-
-    if (q.includes('vendor') && (q.includes('risk') || q.includes('fraud'))) {
-      const risky = [...vendors].sort((a, b) => b.vendor_risk_score - a.vendor_risk_score).slice(0, 5);
-      return `**Top 5 High-Risk Vendors:**\n\n${risky.map((v, i) =>
-        `${i + 1}. **${v.vendor_name}** — Risk Score: ${v.vendor_risk_score}/100 | ${v.fraud_count} flags | ₹${v.total_amount.toLocaleString('en-IN')} total`
-      ).join('\n')}`;
-    }
-
-    if (q.includes('round') || q.includes('round number')) {
-      const round = flaggedTransactions.filter(f => f.flags.some(fl => fl.category === 'Round Number'));
-      return `Detected **${round.length}** round-number transactions.\n\nThese are amounts that are exact multiples of ₹1,000, which may indicate manufactured or estimated entries rather than legitimate business transactions.\n\n${round.slice(0, 5).map(t =>
-        `- **${t.transaction_id}** | ₹${t.amount.toLocaleString('en-IN')} | ${t.vendor_name}`
-      ).join('\n')}`;
-    }
-
-    if (q.includes('weekend')) {
-      const weekend = flaggedTransactions.filter(f => f.flags.some(fl => fl.category === 'Weekend Posting'));
-      return `Found **${weekend.length}** transactions posted on weekends.\n\nWeekend postings are flagged because they deviate from standard business operating hours, potentially indicating unauthorized or after-hours activity.\n\n${weekend.slice(0, 5).map(t =>
-        `- **${t.transaction_id}** | ${t.date} | ₹${t.amount.toLocaleString('en-IN')}`
-      ).join('\n')}`;
-    }
-
-    if (q.includes('summary') || q.includes('summarize') || q.includes('overview') || q.includes('risk profile')) {
-      if (!metrics) return 'No data loaded yet. Please upload a dataset first.';
-      return `**Audit Risk Profile Summary**\n\n- **Total Transactions:** ${metrics.total_transactions.toLocaleString()}\n- **Flagged Exceptions:** ${metrics.flagged_count} (${((metrics.flagged_count / metrics.total_transactions) * 100).toFixed(1)}%)\n- **Average Risk Score:** ${metrics.avg_risk_score}/100\n- **High-Risk Vendors:** ${metrics.high_risk_vendors}\n- **Total Fraud Amount:** ₹${metrics.total_fraud_amount.toLocaleString('en-IN')}\n\nThe system identified anomalies across duplicate invoices, round-number entries, weekend postings, and high-value threshold breaches.`;
-    }
-
-    if (q.includes('txn') || q.includes('why') || q.includes('flagged')) {
-      const match = q.match(/txn[-\s]?(\d+)/i);
-      if (match) {
-        const txn = flaggedTransactions.find(f => f.transaction_id.includes(match[1]));
-        if (txn) return `**${txn.transaction_id}** — Risk Score: ${txn.risk_score}/100 (${txn.risk_tier})\n\n${txn.ai_explanation}`;
-      }
-    }
-
-    return `I analyzed your query against the loaded dataset of ${transactions.length} transactions.\n\nCould you try one of these queries?\n${SUGGESTIONS.map(s => `- "${s}"`).join('\n')}`;
-  };
+  }, [chatMessages, isTyping]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -75,14 +29,39 @@ export const AIChatbot = () => {
     setInput('');
     setIsTyping(true);
 
-    // Add a realistic randomized delay to simulate complex AI reasoning
-    const thinkTime = Math.floor(Math.random() * 1500) + 1500; // 1.5s to 3.0s delay
-    await new Promise(r => setTimeout(r, thinkTime));
+    try {
+      const response = await api.post('http://localhost:8082/api/query', {
+        query: input,
+        companyId: activeCompanyIdForRag || 1,
+        uploadId: activeUploadIdForRag || null
+      });
 
-    const response = generateResponse(input);
-    const assistantMsg: ChatMessage = { id: `msg-${Date.now() + 1}`, role: 'assistant', content: response, timestamp: new Date() };
-    addChatMessage(assistantMsg);
-    setIsTyping(false);
+      const data = response.data;
+      
+      let answerText = data.answer || "I'm sorry, I couldn't generate an answer at this time.";
+      if (data.matchedAnomalies && data.matchedAnomalies.length > 0 && !data.answer) {
+         answerText = `I found ${data.matchedAnomalies.length} related records, but couldn't generate a text summary.`;
+      }
+
+      const assistantMsg: ChatMessage = { 
+        id: `msg-${Date.now() + 1}`, 
+        role: 'assistant', 
+        content: answerText, 
+        timestamp: new Date() 
+      };
+      addChatMessage(assistantMsg);
+    } catch (error) {
+      console.error("Query failed", error);
+      const errorMsg: ChatMessage = { 
+        id: `msg-${Date.now() + 1}`, 
+        role: 'assistant', 
+        content: "Sorry, I encountered an error connecting to the AI backend. Please make sure the server is running.", 
+        timestamp: new Date() 
+      };
+      addChatMessage(errorMsg);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
